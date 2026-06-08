@@ -44,6 +44,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -59,6 +60,7 @@ flutter:
   assets:
     - assets/images/
     - assets/audio/
+    - assets/app_icon/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
@@ -87,3 +89,13 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_icon/transzendent.png"
+  web:
+    generate: true
+    image_path: "assets/app_icon/transzendent.png"
+    background_color: "#12091f"
+    theme_color: "#7b4dff"
