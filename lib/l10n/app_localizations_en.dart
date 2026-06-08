@@ -96,6 +96,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timerTitle => 'Timer';
 
   @override
+  String get timerNoTimer => 'No timer';
+
+  @override
   String get timerUnlimited => 'The session runs without automatic stop.';
 
   @override

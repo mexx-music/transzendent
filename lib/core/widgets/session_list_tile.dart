@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/models/hypnosis_session.dart';
 import '../../../core/widgets/glass_card.dart';
@@ -18,6 +19,7 @@ class SessionListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onTap: onTap,
       child: GlassCard(
@@ -47,9 +49,9 @@ class SessionListTile extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-                  const Text(
-                    'min',
-                    style: TextStyle(fontSize: 8, color: Colors.white70),
+                  Text(
+                    l10n.durationBadgeMin,
+                    style: const TextStyle(fontSize: 8, color: Colors.white70),
                   ),
                 ],
               ),

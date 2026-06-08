@@ -105,7 +105,9 @@ class _TimerChip extends StatelessWidget {
           ),
         ),
         child: Text(
-          option.title,
+          option.isUnlimited
+              ? AppLocalizations.of(context).timerNoTimer
+              : option.title,
           style: TextStyle(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,

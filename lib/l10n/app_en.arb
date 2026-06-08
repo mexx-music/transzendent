@@ -43,6 +43,7 @@
   "backgroundSoundNone": "No background music active.",
 
   "timerTitle": "Timer",
+  "timerNoTimer": "No timer",
   "timerUnlimited": "The session runs without automatic stop.",
 
   "timerAutoStop": "Stops automatically after {minutes} minutes.",

@@ -90,6 +90,9 @@
   "timerTitle": "Timer",
   "@timerTitle": { "description": "Abschnittsüberschrift Sleep-Timer-Picker" },
 
+  "timerNoTimer": "Ohne Timer",
+  "@timerNoTimer": { "description": "Timer-Chip-Label für keine Timer-Option" },
+
   "timerUnlimited": "Die Session läuft ohne automatischen Stopp.",
   "@timerUnlimited": { "description": "Timer-Hinweis: kein automatischer Stopp" },
 

@@ -266,6 +266,12 @@ abstract class AppLocalizations {
   /// **'Timer'**
   String get timerTitle;
 
+  /// Timer-Chip-Label für keine Timer-Option
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Timer'**
+  String get timerNoTimer;
+
   /// Timer-Hinweis: kein automatischer Stopp
   ///
   /// In de, this message translates to:
