@@ -68,5 +68,12 @@
   "settingsLanguageEn": "English",
 
   "volumeVoice": "Voice",
-  "volumeBackground": "Background"
+  "volumeBackground": "Background",
+
+  "backgroundCountActive": "{count} sounds active",
+  "@backgroundCountActive": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

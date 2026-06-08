@@ -355,6 +355,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Hintergrund'**
   String get volumeBackground;
+
+  /// MiniPlayer: Anzahl aktiver Hintergrund-Sounds
+  ///
+  /// In de, this message translates to:
+  /// **'{count} Sounds aktiv'**
+  String backgroundCountActive(int count);
 }
 
 class _AppLocalizationsDelegate

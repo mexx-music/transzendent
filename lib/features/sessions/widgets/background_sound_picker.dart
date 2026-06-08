@@ -2,79 +2,80 @@ import 'package:flutter/material.dart';
 import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/models/background_sound.dart';
+import '../../../features/player/services/audio_player_service.dart';
 import '../data/background_sound_repository.dart';
 
+/// Multi-select background sound picker.
+/// Reads state from [AudioPlayerService] directly – no props needed.
+/// Silence chip acts as "stop all" button.
 class BackgroundSoundPicker extends StatelessWidget {
-  final BackgroundSound selected;
-  final ValueChanged<BackgroundSound> onChanged;
-
-  const BackgroundSoundPicker({
-    super.key,
-    required this.selected,
-    required this.onChanged,
-  });
+  const BackgroundSoundPicker({super.key});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final svc = AudioPlayerService.instance;
     final sounds = BackgroundSoundRepository.sounds;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return ListenableBuilder(
+      listenable: svc,
+      builder: (context, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(
-              Icons.surround_sound_rounded,
-              color: AppTheme.primaryLight,
-              size: 18,
+            Row(
+              children: [
+                const Icon(
+                  Icons.surround_sound_rounded,
+                  color: AppTheme.primaryLight,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.backgroundSoundTitle,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryLight,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                if (svc.hasActiveBackground) ...[
+                  const Spacer(),
+                  Text(
+                    '${svc.activeBackgroundCount} aktiv',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.onSurface,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              l10n.backgroundSoundTitle,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.primaryLight,
-                letterSpacing: 0.6,
+            const SizedBox(height: 12),
+
+            SizedBox(
+              height: 96,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: sounds.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final sound = sounds[index];
+                  final isActive = sound.isSilence
+                      ? !svc.hasActiveBackground
+                      : svc.isBackgroundActive(sound.id);
+                  return _SoundChip(
+                    sound: sound,
+                    isSelected: isActive,
+                    onTap: () => svc.toggleBackgroundSound(sound),
+                  );
+                },
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 12),
-
-        SizedBox(
-          height: 96,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: sounds.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final sound = sounds[index];
-              final isSelected = sound.id == selected.id;
-              return _SoundChip(
-                sound: sound,
-                isSelected: isSelected,
-                onTap: () => onChanged(sound),
-              );
-            },
-          ),
-        ),
-
-        const SizedBox(height: 10),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 220),
-          child: Text(
-            selected.isSilence ? l10n.backgroundSoundNone : selected.description,
-            key: ValueKey(selected.id),
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppTheme.onSurface,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -109,62 +110,33 @@ class _SoundChip extends StatelessWidget {
             width: isSelected ? 1.5 : 1,
           ),
         ),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    sound.icon,
-                    color: isSelected
-                        ? AppTheme.primaryLight
-                        : AppTheme.onSurface,
-                    size: 26,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    sound.title,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isSelected
-                          ? AppTheme.primaryLight
-                          : AppTheme.onSurface,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                sound.icon,
+                color:
+                    isSelected ? AppTheme.primaryLight : AppTheme.onSurface,
+                size: 26,
               ),
-            ),
-
-            if (sound.isPremium)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFB8860B), Color(0xFFFFD700)],
-                    ),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    '★',
-                    style: TextStyle(fontSize: 8, color: Colors.black87),
-                  ),
+              const SizedBox(height: 6),
+              Text(
+                sound.title,
+                style: TextStyle(
+                  fontSize: 10,
+                  color:
+                      isSelected ? AppTheme.primaryLight : AppTheme.onSurface,
+                  fontWeight:
+                      isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

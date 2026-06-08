@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
-import '../../../core/models/background_sound.dart';
 import '../../../core/models/hypnosis_session.dart';
 import '../../../core/models/sleep_timer_option.dart';
 import '../../../core/widgets/adaptive_background.dart';
@@ -25,22 +24,12 @@ class SessionDetailScreen extends StatefulWidget {
 }
 
 class _SessionDetailScreenState extends State<SessionDetailScreen> {
-  late BackgroundSound _selectedSound;
   late SleepTimerOption _selectedTimer;
 
   @override
   void initState() {
     super.initState();
-    _selectedSound = BackgroundSoundRepository.silence;
     _selectedTimer = SleepTimerRepository.defaultOption;
-  }
-
-  void _onSoundChanged(BackgroundSound sound) {
-    setState(() => _selectedSound = sound);
-    final svc = AudioPlayerService.instance;
-    if (!svc.isStopped) {
-      svc.playBackground(sound);
-    }
   }
 
   @override
@@ -146,18 +135,17 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                       const SizedBox(height: 24),
                     ],
 
+                    // Multi-select background sound picker
                     GlassCard(
                       padding: const EdgeInsets.all(20),
-                      child: BackgroundSoundPicker(
-                        selected: _selectedSound,
-                        onChanged: _onSoundChanged,
-                      ),
+                      child: const BackgroundSoundPicker(),
                     ),
                     const SizedBox(height: 16),
 
+                    // Voice slider + per-active-sound sliders
                     GlassCard(
                       padding: const EdgeInsets.all(20),
-                      child: _VolumeSliders(),
+                      child: const _VolumeSliders(),
                     ),
                     const SizedBox(height: 16),
 
@@ -173,10 +161,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    _PlayerControls(
-                      session: widget.session,
-                      backgroundSound: _selectedSound,
-                    ),
+                    _PlayerControls(session: widget.session),
                     const SizedBox(height: 16),
 
                     if (widget.session.isPremium)
@@ -235,6 +220,8 @@ class _CoverArt extends StatelessWidget {
   }
 }
 
+/// Voice slider (always visible) + one slider per currently active
+/// background sound – appears/disappears as sounds are toggled.
 class _VolumeSliders extends StatelessWidget {
   const _VolumeSliders();
 
@@ -246,6 +233,10 @@ class _VolumeSliders extends StatelessWidget {
     return ListenableBuilder(
       listenable: svc,
       builder: (context, _) {
+        final activeSounds = BackgroundSoundRepository.sounds
+            .where((s) => svc.isBackgroundActive(s.id))
+            .toList();
+
         return Column(
           children: [
             _VolumeRow(
@@ -254,12 +245,17 @@ class _VolumeSliders extends StatelessWidget {
               value: svc.voiceVolume,
               onChanged: (v) => svc.setVoiceVolume(v),
             ),
-            const SizedBox(height: 4),
-            _VolumeRow(
-              icon: Icons.surround_sound_rounded,
-              label: l10n.volumeBackground,
-              value: svc.backgroundVolume,
-              onChanged: (v) => svc.setBackgroundVolume(v),
+            ...activeSounds.map(
+              (sound) => Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: _VolumeRow(
+                  icon: sound.icon,
+                  label: sound.title,
+                  value: svc.backgroundVolumeFor(sound.id),
+                  onChanged: (v) =>
+                      svc.setBackgroundSoundVolume(sound.id, v),
+                ),
+              ),
             ),
           ],
         );
@@ -296,6 +292,8 @@ class _VolumeRow extends StatelessWidget {
               color: AppTheme.onSurface,
               fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         Expanded(
@@ -311,8 +309,7 @@ class _VolumeRow extends StatelessWidget {
               value: value,
               onChanged: onChanged,
               activeColor: AppTheme.primaryLight,
-              inactiveColor:
-                  AppTheme.primaryLight.withValues(alpha: 0.2),
+              inactiveColor: AppTheme.primaryLight.withValues(alpha: 0.2),
             ),
           ),
         ),
@@ -334,12 +331,8 @@ class _VolumeRow extends StatelessWidget {
 
 class _PlayerControls extends StatelessWidget {
   final HypnosisSession session;
-  final BackgroundSound backgroundSound;
 
-  const _PlayerControls({
-    required this.session,
-    required this.backgroundSound,
-  });
+  const _PlayerControls({required this.session});
 
   @override
   Widget build(BuildContext context) {
@@ -363,10 +356,7 @@ class _PlayerControls extends StatelessWidget {
                   await svc.resume();
                 } else {
                   LibraryService.instance.markRecentlyPlayed(session.id);
-                  await svc.play(
-                    session,
-                    backgroundSound: backgroundSound,
-                  );
+                  await svc.play(session);
                 }
               },
               child: Container(

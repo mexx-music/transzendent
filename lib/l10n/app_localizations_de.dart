@@ -141,4 +141,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get volumeBackground => 'Hintergrund';
+
+  @override
+  String backgroundCountActive(int count) {
+    return '$count Sounds aktiv';
+  }
 }

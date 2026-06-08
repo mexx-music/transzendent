@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../player/services/audio_player_service.dart';
+import '../../sessions/data/background_sound_repository.dart';
 
 class MiniPlayerBar extends StatelessWidget {
   const MiniPlayerBar({super.key});
@@ -22,6 +23,8 @@ class MiniPlayerBar extends StatelessWidget {
           PlayerStatus.paused => l10n.playerPaused,
           PlayerStatus.stopped => l10n.playerStopped,
         };
+
+        final String subtitle = _buildSubtitle(svc, statusLabel, l10n);
 
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
@@ -85,11 +88,7 @@ class MiniPlayerBar extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      hasSession
-                          ? (svc.hasActiveBackground
-                              ? '$statusLabel · ${svc.selectedBackgroundSound!.title}'
-                              : statusLabel)
-                          : l10n.playerChooseSession,
+                      hasSession ? subtitle : l10n.playerChooseSession,
                       style: const TextStyle(
                         color: AppTheme.onSurface,
                         fontSize: 11,
@@ -140,5 +139,22 @@ class MiniPlayerBar extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _buildSubtitle(
+    AudioPlayerService svc,
+    String statusLabel,
+    AppLocalizations l10n,
+  ) {
+    if (!svc.hasActiveBackground) return statusLabel;
+
+    if (svc.activeBackgroundCount == 1) {
+      final title =
+          BackgroundSoundRepository.findById(svc.activeBackgroundSoundIds.first)
+              ?.title;
+      return title != null ? '$statusLabel · $title' : statusLabel;
+    }
+
+    return '$statusLabel · ${l10n.backgroundCountActive(svc.activeBackgroundCount)}';
   }
 }

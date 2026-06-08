@@ -138,5 +138,13 @@
   "@volumeVoice": { "description": "Lautstärkeregler: Stimme" },
 
   "volumeBackground": "Hintergrund",
-  "@volumeBackground": { "description": "Lautstärkeregler: Hintergrundton" }
+  "@volumeBackground": { "description": "Lautstärkeregler: Hintergrundton" },
+
+  "backgroundCountActive": "{count} Sounds aktiv",
+  "@backgroundCountActive": {
+    "description": "MiniPlayer: Anzahl aktiver Hintergrund-Sounds",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }
