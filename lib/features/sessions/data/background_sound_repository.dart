@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/background_sound.dart';
 
-/// Statisches Repository für Hintergrund-Sounds.
-///
-/// Ausbaustufe 6+: [assetPath] pro Sound eintragen und Dateien unter
-/// assets/audio/bg/ ablegen. Dann im AudioPlayerService einen zweiten
-/// just_audio-Player für den Hintergrundton starten.
 class BackgroundSoundRepository {
   BackgroundSoundRepository._();
 
@@ -14,52 +9,63 @@ class BackgroundSoundRepository {
       id: 'silence',
       title: 'Stille',
       description: 'Kein Hintergrundton – reine Stille',
-      assetPath: null, // Stille: kein Asset
+      assetPath: null,
       icon: Icons.volume_off_rounded,
-    ),
-    BackgroundSound(
-      id: 'purr',
-      title: 'Sanftes Schnurren',
-      description: 'Tiefes, rhythmisches Schnurren für tiefe Entspannung',
-      assetPath: '', // TODO: 'assets/audio/bg/purr.mp3'
-      icon: Icons.pets_rounded,
-    ),
-    BackgroundSound(
-      id: 'rain',
-      title: 'Tiefer Regen',
-      description: 'Gleichmäßiges Regengeräusch für innere Ruhe',
-      assetPath: '', // TODO: 'assets/audio/bg/rain.mp3'
-      icon: Icons.water_drop_rounded,
     ),
     BackgroundSound(
       id: 'ocean',
       title: 'Meeresrauschen',
       description: 'Sanfte Wellen für ein Gefühl von Weite',
-      assetPath: '', // TODO: 'assets/audio/bg/ocean.mp3'
+      assetPath: 'assets/audio/background/ocean.m4a',
       icon: Icons.waves_rounded,
     ),
     BackgroundSound(
-      id: 'heartbeat',
-      title: 'Ruhiger Herzton',
-      description: 'Langsamer Herzschlag zur Beruhigung des Nervensystems',
-      assetPath: '', // TODO: 'assets/audio/bg/heartbeat.mp3'
-      icon: Icons.favorite_rounded,
-      isPremium: true,
+      id: 'rain',
+      title: 'Tiefer Regen',
+      description: 'Gleichmäßiges Regengeräusch für innere Ruhe',
+      assetPath: 'assets/audio/background/rain.m4a',
+      icon: Icons.water_drop_rounded,
     ),
     BackgroundSound(
-      id: 'drone',
-      title: 'Mystischer Drone',
-      description: 'Tiefer, meditativer Klang für tiefe Versenkung',
-      assetPath: '', // TODO: 'assets/audio/bg/drone.mp3'
-      icon: Icons.blur_on_rounded,
-      isPremium: true,
+      id: 'purr',
+      title: 'Sanftes Schnurren',
+      description: 'Tiefes, rhythmisches Schnurren für tiefe Entspannung',
+      assetPath: 'assets/audio/background/purr_blacknew.mp3',
+      icon: Icons.pets_rounded,
+    ),
+    BackgroundSound(
+      id: 'guitar_soft',
+      title: 'Sanfte Gitarre',
+      description: 'Ruhige akustische Gitarre für entspannte Momente',
+      assetPath: 'assets/audio/background/soft-acoustic-guitar1.mp3',
+      icon: Icons.music_note_rounded,
+    ),
+    BackgroundSound(
+      id: 'guitar_slow',
+      title: 'Langsame Gitarre',
+      description: 'Sehr langsame Gitarrenklänge für tiefe Ruhe',
+      assetPath: 'assets/audio/background/very-slow-acoustic-guitar1.mp3',
+      icon: Icons.piano_rounded,
+    ),
+    BackgroundSound(
+      id: 'deep_relax',
+      title: 'Tiefe Entspannung',
+      description: 'Meditativer Klangteppich für vollständige Loslösung',
+      assetPath:
+          'assets/audio/background/very-slow-relaxing-acoustic-guitar1.mp3',
+      icon: Icons.self_improvement_rounded,
+    ),
+    BackgroundSound(
+      id: 'sauna',
+      title: 'Sauna Ambiente',
+      description: 'Wohlige Wärme-Atmosphäre für tiefe Entspannung',
+      assetPath: 'assets/audio/background/warm-sauna-relaxation-ambience1.mp3',
+      icon: Icons.local_fire_department_rounded,
     ),
   ];
 
-  /// Stille-Eintrag – immer der erste
   static BackgroundSound get silence => sounds.first;
 
-  /// Sound anhand der ID finden
   static BackgroundSound? findById(String id) {
     try {
       return sounds.firstWhere((s) => s.id == id);

@@ -42,6 +42,7 @@ class SessionRepository {
           'Eine ruhige geführte Reise in tiefen, erholsamen Schlaf. '
           'Ideal für Abende, an denen der Gedankenstrom nicht zur Ruhe kommt.',
       durationMinutes: 20,
+      audioPath: 'assets/audio/voice/deutschhypnose1.mp3',
     ),
     HypnosisSession(
       id: 'sleep_2',
