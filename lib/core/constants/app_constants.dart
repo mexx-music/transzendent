@@ -1,4 +1,3 @@
-/// App-weite Konstanten.
 class AppConstants {
   AppConstants._();
 
@@ -6,7 +5,10 @@ class AppConstants {
   static const String appTagline =
       'Positive Suggestionen · Hypnose · Innere Ruhe';
 
-  // Asset-Pfade
-  static const String backgroundImage =
-      'assets/images/transzendent_background.png';
+  static const String bgPhonePortrait =
+      'assets/images/background_phone_portrait.png';
+  static const String bgPhoneLandscape =
+      'assets/images/background_phone_landscape.png';
+  static const String bgTabletLandscape =
+      'assets/images/background_tablet_landscape.png';
 }

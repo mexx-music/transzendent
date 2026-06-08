@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/models/hypnosis_session.dart';
 import '../../../core/models/session_category.dart';
+import '../../../core/widgets/adaptive_background.dart';
 import '../data/session_repository.dart';
 import '../screens/session_detail_screen.dart';
 import '../widgets/session_card.dart';
 
-/// Zeigt alle Sessions einer Kategorie als scrollbare Liste.
 class SessionListScreen extends StatelessWidget {
   final SessionCategory category;
 
@@ -16,6 +15,8 @@ class SessionListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sessions = SessionRepository.sessionsForCategory(category.id);
+    final width = MediaQuery.of(context).size.width;
+    final double maxWidth = width >= 900 ? 900 : 600;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -40,51 +41,48 @@ class SessionListScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          // ── Hintergrundbild (identisch zum Homescreen) ────────────────────
-          _Background(),
-
-          // ── Inhalt ────────────────────────────────────────────────────────
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Untertitel der Kategorie
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-                  child: Text(
-                    category.subtitle,
-                    style: const TextStyle(
-                      color: AppTheme.onSurface,
-                      fontSize: 13,
-                      letterSpacing: 0.4,
+      body: AdaptiveBackground(
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+                    child: Text(
+                      category.subtitle,
+                      style: const TextStyle(
+                        color: AppTheme.onSurface,
+                        fontSize: 13,
+                        letterSpacing: 0.4,
+                      ),
                     ),
                   ),
-                ),
-
-                // Session-Liste
-                Expanded(
-                  child: sessions.isEmpty
-                      ? const _EmptyState()
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-                          itemCount: sessions.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 14),
-                          itemBuilder: (context, index) {
-                            final session = sessions[index];
-                            return SessionCard(
-                              session: session,
-                              onTap: () => _openDetail(context, session),
-                            );
-                          },
-                        ),
-                ),
-              ],
+                  Expanded(
+                    child: sessions.isEmpty
+                        ? const _EmptyState()
+                        : ListView.separated(
+                            padding:
+                                const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                            itemCount: sessions.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 14),
+                            itemBuilder: (context, index) {
+                              final session = sessions[index];
+                              return SessionCard(
+                                session: session,
+                                onTap: () => _openDetail(context, session),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -92,29 +90,6 @@ class SessionListScreen extends StatelessWidget {
   void _openDetail(BuildContext context, HypnosisSession session) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => SessionDetailScreen(session: session)),
-    );
-  }
-}
-
-// ── Private Widgets ───────────────────────────────────────────────────────────
-
-class _Background extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Image.asset(
-        AppConstants.backgroundImage,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -0.4),
-              radius: 1.2,
-              colors: [Color(0xFF2D1B69), Color(0xFF0D0B1E)],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/models/suggestion_script.dart';
+import '../../../core/widgets/adaptive_background.dart';
 import '../../../core/widgets/glass_card.dart';
 
 /// Zeigt den vollständigen gesprochenen Text eines [SuggestionScript].
@@ -35,13 +35,8 @@ class ScriptPreviewScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          // ── Hintergrundbild ──────────────────────────────────────────────
-          _Background(),
-
-          // ── Inhalt ───────────────────────────────────────────────────────
-          SafeArea(
+      body: AdaptiveBackground(
+        child: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
               child: Column(
@@ -139,30 +134,6 @@ class ScriptPreviewScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Private Widgets ───────────────────────────────────────────────────────────
-
-class _Background extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Image.asset(
-        AppConstants.backgroundImage,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -0.4),
-              radius: 1.2,
-              colors: [Color(0xFF2D1B69), Color(0xFF0D0B1E)],
-            ),
-          ),
         ),
       ),
     );

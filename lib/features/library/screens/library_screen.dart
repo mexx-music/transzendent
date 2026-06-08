@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/models/hypnosis_session.dart';
+import '../../../core/widgets/adaptive_background.dart';
 import '../../../core/widgets/session_list_tile.dart';
 import '../../sessions/data/session_repository.dart';
 import '../../sessions/screens/session_detail_screen.dart';
 import '../services/library_service.dart';
 
-/// Bibliotheks-Screen: Favoriten und zuletzt gehört.
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final double maxWidth = width >= 900 ? 900 : 600;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -29,62 +31,61 @@ class LibraryScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          _Background(),
-          SafeArea(
-            child: ListenableBuilder(
-              listenable: LibraryService.instance,
-              builder: (context, _) {
-                final svc = LibraryService.instance;
+      body: AdaptiveBackground(
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: ListenableBuilder(
+                listenable: LibraryService.instance,
+                builder: (context, _) {
+                  final svc = LibraryService.instance;
+                  final favorites = _resolveSessions(svc.favoriteSessionIds);
+                  final recent = _resolveSessions(svc.recentSessionIds);
+                  final isEmpty = favorites.isEmpty && recent.isEmpty;
 
-                final favorites = _resolveSessions(svc.favoriteSessionIds);
-                final recent = _resolveSessions(svc.recentSessionIds);
-
-                final isEmpty = favorites.isEmpty && recent.isEmpty;
-
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
-                  child: isEmpty
-                      ? const _EmptyLibrary()
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (favorites.isNotEmpty) ...[
-                              _SectionHeader(
-                                icon: Icons.favorite_rounded,
-                                title: 'Favoriten',
-                              ),
-                              const SizedBox(height: 12),
-                              _SessionList(
-                                sessions: favorites,
-                                onTap: (s) => _openDetail(context, s),
-                              ),
-                              const SizedBox(height: 28),
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+                    child: isEmpty
+                        ? const _EmptyLibrary()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (favorites.isNotEmpty) ...[
+                                _SectionHeader(
+                                  icon: Icons.favorite_rounded,
+                                  title: 'Favoriten',
+                                ),
+                                const SizedBox(height: 12),
+                                _SessionList(
+                                  sessions: favorites,
+                                  onTap: (s) => _openDetail(context, s),
+                                ),
+                                const SizedBox(height: 28),
+                              ],
+                              if (recent.isNotEmpty) ...[
+                                _SectionHeader(
+                                  icon: Icons.history_rounded,
+                                  title: 'Zuletzt gehört',
+                                ),
+                                const SizedBox(height: 12),
+                                _SessionList(
+                                  sessions: recent,
+                                  onTap: (s) => _openDetail(context, s),
+                                ),
+                              ],
                             ],
-                            if (recent.isNotEmpty) ...[
-                              _SectionHeader(
-                                icon: Icons.history_rounded,
-                                title: 'Zuletzt gehört',
-                              ),
-                              const SizedBox(height: 12),
-                              _SessionList(
-                                sessions: recent,
-                                onTap: (s) => _openDetail(context, s),
-                              ),
-                            ],
-                          ],
-                        ),
-                );
-              },
+                          ),
+                  );
+                },
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  /// IDs in [HypnosisSession]-Objekte auflösen – unbekannte IDs überspringen
   List<HypnosisSession> _resolveSessions(Iterable<String> ids) =>
       ids.map(SessionRepository.findById).whereType<HypnosisSession>().toList();
 
@@ -96,27 +97,6 @@ class LibraryScreen extends StatelessWidget {
 }
 
 // ── Private Widgets ───────────────────────────────────────────────────────────
-
-class _Background extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Image.asset(
-        AppConstants.backgroundImage,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -0.4),
-              radius: 1.2,
-              colors: [Color(0xFF2D1B69), Color(0xFF0D0B1E)],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _SectionHeader extends StatelessWidget {
   final IconData icon;

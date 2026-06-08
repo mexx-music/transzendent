@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/models/hypnosis_session.dart';
+import '../../../core/widgets/adaptive_background.dart';
 import '../../../core/widgets/session_list_tile.dart';
 import '../../../features/library/screens/library_screen.dart';
 import '../../../features/library/services/library_service.dart';
@@ -10,134 +11,179 @@ import '../../../features/sessions/screens/session_detail_screen.dart';
 import '../widgets/category_card.dart';
 import '../widgets/mini_player_bar.dart';
 
-/// Startscreen der App.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final double maxWidth = width >= 1100 ? 1100 : width >= 900 ? 900 : 600;
     final categories = SessionRepository.categories;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          // ── Hintergrundbild ─────────────────────────────────────────────
-          _Background(),
+      body: AdaptiveBackground(
+        child: Stack(
+          children: [
+            SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: ListenableBuilder(
+                    listenable: LibraryService.instance,
+                    builder: (context, _) {
+                      final svc = LibraryService.instance;
 
-          // ── Hauptinhalt ──────────────────────────────────────────────────
-          SafeArea(
-            child: ListenableBuilder(
-              listenable: LibraryService.instance,
-              builder: (context, _) {
-                final svc = LibraryService.instance;
+                      final recent = svc.recentSessionIds
+                          .map(SessionRepository.findById)
+                          .whereType<HypnosisSession>()
+                          .take(3)
+                          .toList();
 
-                final recent = svc.recentSessionIds
-                    .map(SessionRepository.findById)
-                    .whereType<HypnosisSession>()
-                    .take(3)
-                    .toList();
+                      final favorites = svc.favoriteSessionIds
+                          .map(SessionRepository.findById)
+                          .whereType<HypnosisSession>()
+                          .take(3)
+                          .toList();
 
-                final favorites = svc.favoriteSessionIds
-                    .map(SessionRepository.findById)
-                    .whereType<HypnosisSession>()
-                    .take(3)
-                    .toList();
+                      return CustomScrollView(
+                        slivers: [
+                          const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                          SliverToBoxAdapter(child: _Header()),
+                          const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-                return CustomScrollView(
-                  slivers: [
-                    // Abstand + Header
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                    SliverToBoxAdapter(child: _Header()),
-                    const SliverToBoxAdapter(child: SizedBox(height: 28)),
-
-                    // ── Zuletzt gehört ─────────────────────────────────────
-                    if (recent.isNotEmpty) ...[
-                      SliverToBoxAdapter(
-                        child: _HomeSectionHeader(
-                          icon: Icons.history_rounded,
-                          title: 'Zuletzt gehört',
-                          onSeeAll: () => _openLibrary(context),
-                        ),
-                      ),
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (_, i) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: SessionListTile(
-                                session: recent[i],
-                                onTap: () => _openDetail(context, recent[i]),
+                          // ── Zuletzt gehört ───────────────────────────────
+                          if (recent.isNotEmpty) ...[
+                            SliverToBoxAdapter(
+                              child: _HomeSectionHeader(
+                                icon: Icons.history_rounded,
+                                title: 'Zuletzt gehört',
+                                onSeeAll: () => _openLibrary(context),
                               ),
                             ),
-                            childCount: recent.length,
-                          ),
-                        ),
-                      ),
-                      const SliverToBoxAdapter(child: SizedBox(height: 20)),
-                    ],
-
-                    // ── Favoriten ──────────────────────────────────────────
-                    if (favorites.isNotEmpty) ...[
-                      SliverToBoxAdapter(
-                        child: _HomeSectionHeader(
-                          icon: Icons.favorite_rounded,
-                          title: 'Favoriten',
-                          onSeeAll: () => _openLibrary(context),
-                        ),
-                      ),
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (_, i) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: SessionListTile(
-                                session: favorites[i],
-                                onTap: () => _openDetail(context, favorites[i]),
+                            SliverPadding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(24, 10, 24, 0),
+                              sliver: SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (_, i) => Padding(
+                                    padding:
+                                        const EdgeInsets.only(bottom: 10),
+                                    child: SessionListTile(
+                                      session: recent[i],
+                                      onTap: () =>
+                                          _openDetail(context, recent[i]),
+                                    ),
+                                  ),
+                                  childCount: recent.length,
+                                ),
                               ),
                             ),
-                            childCount: favorites.length,
-                          ),
-                        ),
-                      ),
-                      const SliverToBoxAdapter(child: SizedBox(height: 20)),
-                    ],
+                            const SliverToBoxAdapter(
+                                child: SizedBox(height: 20)),
+                          ],
 
-                    // ── Kategorien ─────────────────────────────────────────
-                    SliverToBoxAdapter(
-                      child: _HomeSectionHeader(
-                        icon: Icons.apps_rounded,
-                        title: 'Kategorien',
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(24, 10, 24, 80),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (_, i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: CategoryCard(category: categories[i]),
+                          // ── Favoriten ────────────────────────────────────
+                          if (favorites.isNotEmpty) ...[
+                            SliverToBoxAdapter(
+                              child: _HomeSectionHeader(
+                                icon: Icons.favorite_rounded,
+                                title: 'Favoriten',
+                                onSeeAll: () => _openLibrary(context),
+                              ),
+                            ),
+                            SliverPadding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(24, 10, 24, 0),
+                              sliver: SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (_, i) => Padding(
+                                    padding:
+                                        const EdgeInsets.only(bottom: 10),
+                                    child: SessionListTile(
+                                      session: favorites[i],
+                                      onTap: () =>
+                                          _openDetail(context, favorites[i]),
+                                    ),
+                                  ),
+                                  childCount: favorites.length,
+                                ),
+                              ),
+                            ),
+                            const SliverToBoxAdapter(
+                                child: SizedBox(height: 20)),
+                          ],
+
+                          // ── Kategorien (responsives Grid) ─────────────────
+                          SliverToBoxAdapter(
+                            child: _HomeSectionHeader(
+                              icon: Icons.apps_rounded,
+                              title: 'Kategorien',
+                            ),
                           ),
-                          childCount: categories.length,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
+                          SliverPadding(
+                            padding:
+                                const EdgeInsets.fromLTRB(24, 10, 24, 80),
+                            sliver: SliverToBoxAdapter(
+                              child: LayoutBuilder(
+                                builder: (ctx, constraints) {
+                                  final availableWidth = constraints.maxWidth;
+                                  final int cols = availableWidth >= 900
+                                      ? 3
+                                      : availableWidth >= 600
+                                          ? 2
+                                          : 1;
+
+                                  if (cols == 1) {
+                                    return Column(
+                                      children: categories
+                                          .map(
+                                            (cat) => Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 16),
+                                              child:
+                                                  CategoryCard(category: cat),
+                                            ),
+                                          )
+                                          .toList(),
+                                    );
+                                  }
+
+                                  final itemWidth =
+                                      (availableWidth - 16.0 * (cols - 1)) /
+                                          cols;
+                                  return Wrap(
+                                    spacing: 16,
+                                    runSpacing: 16,
+                                    children: categories
+                                        .map(
+                                          (cat) => SizedBox(
+                                            width: itemWidth,
+                                            child: CategoryCard(category: cat),
+                                          ),
+                                        )
+                                        .toList(),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
-          ),
 
-          // ── Mini-Player unten ────────────────────────────────────────────
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: MiniPlayerBar(),
-          ),
-        ],
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: MiniPlayerBar(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -149,9 +195,8 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _openLibrary(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const LibraryScreen()));
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const LibraryScreen()));
   }
 }
 
@@ -199,28 +244,6 @@ class _HomeSectionHeader extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _Background extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Image.asset(
-        AppConstants.backgroundImage,
-        fit: BoxFit.cover,
-        // Fallback-Farbe, falls das Bild noch nicht vorhanden ist
-        errorBuilder: (_, __, ___) => Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -0.4),
-              radius: 1.2,
-              colors: [Color(0xFF2D1B69), Color(0xFF0D0B1E)],
-            ),
-          ),
-        ),
       ),
     );
   }

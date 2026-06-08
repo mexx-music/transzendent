@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/models/background_sound.dart';
 import '../../../core/models/hypnosis_session.dart';
 import '../../../core/models/sleep_timer_option.dart';
+import '../../../core/widgets/adaptive_background.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../library/services/library_service.dart';
 import '../../player/services/audio_player_service.dart';
@@ -14,7 +14,6 @@ import '../widgets/background_sound_picker.dart';
 import '../widgets/sleep_timer_picker.dart';
 import '../widgets/suggestion_section.dart';
 
-/// Detailseite einer Session.
 class SessionDetailScreen extends StatefulWidget {
   final HypnosisSession session;
 
@@ -25,10 +24,7 @@ class SessionDetailScreen extends StatefulWidget {
 }
 
 class _SessionDetailScreenState extends State<SessionDetailScreen> {
-  // Ausgewählter Hintergrund-Sound – Standard: Stille
   late BackgroundSound _selectedSound;
-
-  // Gewählte Timer-Option – Standard: kein Timer
   late SleepTimerOption _selectedTimer;
 
   @override
@@ -40,8 +36,15 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Script für diese Session – kann null sein wenn noch keins angelegt
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.shortestSide >= 600;
+    final double maxWidth = isTablet ? 900.0 : 600.0;
+    final double coverSize = isTablet ? 240.0 : 180.0;
+    final double topSpacing = isTablet ? 32.0 : 20.0;
+    final double afterCoverSpacing = isTablet ? 40.0 : 32.0;
+
     final script = SuggestionRepository.forSession(widget.session.id);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -55,24 +58,21 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          // Favoriten-Button – reagiert auf LibraryService
           ListenableBuilder(
             listenable: LibraryService.instance,
             builder: (_, __) {
-              final isFav = LibraryService.instance.isFavorite(
-                widget.session.id,
-              );
+              final isFav =
+                  LibraryService.instance.isFavorite(widget.session.id);
               return IconButton(
                 icon: Icon(
                   isFav
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
-                  color: isFav
-                      ? const Color(0xFFE040FB)
-                      : AppTheme.onBackground,
+                  color:
+                      isFav ? const Color(0xFFE040FB) : AppTheme.onBackground,
                 ),
-                onPressed: () =>
-                    LibraryService.instance.toggleFavorite(widget.session.id),
+                onPressed: () => LibraryService.instance
+                    .toggleFavorite(widget.session.id),
                 tooltip: isFav
                     ? 'Aus Favoriten entfernen'
                     : 'Zu Favoriten hinzufügen',
@@ -81,129 +81,98 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          // ── Hintergrundbild ────────────────────────────────────────────────
-          _Background(),
+      body: AdaptiveBackground(
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: topSpacing),
 
-          // ── Inhalt ─────────────────────────────────────────────────────────
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 20),
+                    _CoverArt(
+                        isPremium: widget.session.isPremium, size: coverSize),
+                    SizedBox(height: afterCoverSpacing),
 
-                  // Cover-Platzhalter
-                  _CoverArt(isPremium: widget.session.isPremium),
-                  const SizedBox(height: 32),
-
-                  // Titel
-                  Text(
-                    widget.session.title,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.onBackground,
-                      letterSpacing: 0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Dauer
-                  Text(
-                    '${widget.session.durationMinutes} Minuten',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.primaryLight,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Beschreibung
-                  GlassCard(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      widget.session.description,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: AppTheme.onSurface,
-                        height: 1.65,
+                    Text(
+                      widget.session.title,
+                      style: TextStyle(
+                        fontSize: isTablet ? 28.0 : 24.0,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.onBackground,
+                        letterSpacing: 0.5,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 8),
 
-                  // Suggestion-Abschnitt – nur anzeigen wenn ein Script existiert
-                  if (script != null) ...[
-                    SuggestionSection(script: script),
+                    Text(
+                      '${widget.session.durationMinutes} Minuten',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.primaryLight,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    SizedBox(height: isTablet ? 36.0 : 28.0),
+
+                    GlassCard(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        widget.session.description,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: AppTheme.onSurface,
+                          height: 1.65,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                     const SizedBox(height: 24),
+
+                    if (script != null) ...[
+                      SuggestionSection(script: script),
+                      const SizedBox(height: 24),
+                    ],
+
+                    GlassCard(
+                      padding: const EdgeInsets.all(20),
+                      child: BackgroundSoundPicker(
+                        selected: _selectedSound,
+                        onChanged: (sound) =>
+                            setState(() => _selectedSound = sound),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    GlassCard(
+                      padding: const EdgeInsets.all(20),
+                      child: SleepTimerPicker(
+                        selected: _selectedTimer,
+                        onChanged: (option) {
+                          setState(() => _selectedTimer = option);
+                          AudioPlayerService.instance.setTimerOption(option);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    _PlayerControls(session: widget.session),
+                    const SizedBox(height: 16),
+
+                    if (widget.session.isPremium)
+                      const Text(
+                        'Diese Session ist Teil des Premium-Bereichs.',
+                        style:
+                            TextStyle(fontSize: 12, color: AppTheme.onSurface),
+                        textAlign: TextAlign.center,
+                      ),
                   ],
-
-                  // ── Hintergrund-Sound-Auswahl ────────────────────────────
-                  GlassCard(
-                    padding: const EdgeInsets.all(20),
-                    child: BackgroundSoundPicker(
-                      selected: _selectedSound,
-                      onChanged: (sound) =>
-                          setState(() => _selectedSound = sound),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Timer-Auswahl ─────────────────────────────────────────
-                  GlassCard(
-                    padding: const EdgeInsets.all(20),
-                    child: SleepTimerPicker(
-                      selected: _selectedTimer,
-                      onChanged: (option) {
-                        setState(() => _selectedTimer = option);
-                        // Timer-Option an Service weitergeben
-                        AudioPlayerService.instance.setTimerOption(option);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Player-Steuerung – reagiert auf AudioPlayerService
-                  _PlayerControls(session: widget.session),
-                  const SizedBox(height: 16),
-
-                  if (widget.session.isPremium)
-                    const Text(
-                      'Diese Session ist Teil des Premium-Bereichs.',
-                      style: TextStyle(fontSize: 12, color: AppTheme.onSurface),
-                      textAlign: TextAlign.center,
-                    ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Private Widgets ───────────────────────────────────────────────────────────
-
-class _Background extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Image.asset(
-        AppConstants.backgroundImage,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -0.4),
-              radius: 1.2,
-              colors: [Color(0xFF2D1B69), Color(0xFF0D0B1E)],
             ),
           ),
         ),
@@ -212,15 +181,18 @@ class _Background extends StatelessWidget {
   }
 }
 
+// ── Private Widgets ───────────────────────────────────────────────────────────
+
 class _CoverArt extends StatelessWidget {
   final bool isPremium;
-  const _CoverArt({required this.isPremium});
+  final double size;
+  const _CoverArt({required this.isPremium, required this.size});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 180,
-      height: 180,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
@@ -238,9 +210,9 @@ class _CoverArt extends StatelessWidget {
           ),
         ],
       ),
-      child: const Icon(
+      child: Icon(
         Icons.self_improvement_rounded,
-        size: 72,
+        size: size * 0.4,
         color: Colors.white54,
       ),
     );
@@ -264,7 +236,6 @@ class _PlayerControls extends StatelessWidget {
 
         return Column(
           children: [
-            // ── Haupt-Button ──────────────────────────────────────────────
             GestureDetector(
               onTap: () async {
                 if (isPlaying) {
@@ -272,7 +243,6 @@ class _PlayerControls extends StatelessWidget {
                 } else if (isPaused) {
                   await svc.resume();
                 } else {
-                  // Session als kürzlich gespielt markieren
                   LibraryService.instance.markRecentlyPlayed(session.id);
                   await svc.play(session);
                 }
@@ -299,8 +269,6 @@ class _PlayerControls extends StatelessWidget {
                     Icon(
                       isPlaying
                           ? Icons.pause_rounded
-                          : isPaused
-                          ? Icons.play_arrow_rounded
                           : Icons.play_arrow_rounded,
                       color: Colors.white,
                       size: 26,
@@ -310,8 +278,8 @@ class _PlayerControls extends StatelessWidget {
                       isPlaying
                           ? 'Pausieren'
                           : isPaused
-                          ? 'Fortsetzen'
-                          : 'Session starten',
+                              ? 'Fortsetzen'
+                              : 'Session starten',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -324,7 +292,6 @@ class _PlayerControls extends StatelessWidget {
               ),
             ),
 
-            // ── Stop-Button – nur sichtbar wenn diese Session aktiv ist ───
             if (isPlaying || isPaused) ...[
               const SizedBox(height: 12),
               GestureDetector(
@@ -342,11 +309,8 @@ class _PlayerControls extends StatelessWidget {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.stop_rounded,
-                        color: AppTheme.onSurface,
-                        size: 20,
-                      ),
+                      Icon(Icons.stop_rounded,
+                          color: AppTheme.onSurface, size: 20),
                       SizedBox(width: 8),
                       Text(
                         'Stoppen',
@@ -362,7 +326,6 @@ class _PlayerControls extends StatelessWidget {
               ),
             ],
 
-            // ── Hinweis wenn kein Audio hinterlegt ────────────────────────
             if (session.audioPath == null) ...[
               const SizedBox(height: 10),
               const Text(
