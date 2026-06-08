@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/models/sleep_timer_option.dart';
 import '../data/sleep_timer_repository.dart';
 
-/// Kompakter Timer-Picker für den [SessionDetailScreen].
-/// Zeigt alle [SleepTimerRepository.options] als horizontale Chip-Reihe.
 class SleepTimerPicker extends StatelessWidget {
   final SleepTimerOption selected;
   final ValueChanged<SleepTimerOption> onChanged;
@@ -17,19 +16,20 @@ class SleepTimerPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final options = SleepTimerRepository.options;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Header ──────────────────────────────────────────────────────────
-        const Row(
+        Row(
           children: [
-            Icon(Icons.bedtime_rounded, color: AppTheme.primaryLight, size: 18),
-            SizedBox(width: 8),
+            const Icon(Icons.bedtime_rounded,
+                color: AppTheme.primaryLight, size: 18),
+            const SizedBox(width: 8),
             Text(
-              'Timer',
-              style: TextStyle(
+              l10n.timerTitle,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.primaryLight,
@@ -40,7 +40,6 @@ class SleepTimerPicker extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // ── Chip-Reihe ───────────────────────────────────────────────────────
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -56,13 +55,12 @@ class SleepTimerPicker extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // ── Aktive Auswahl – Hinweistext ─────────────────────────────────────
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 220),
           child: Text(
             selected.isUnlimited
-                ? 'Die Session läuft ohne automatischen Stopp.'
-                : 'Stoppt automatisch nach ${selected.durationMinutes} Minuten.',
+                ? l10n.timerUnlimited
+                : l10n.timerAutoStop(selected.durationMinutes),
             key: ValueKey(selected.id),
             style: const TextStyle(
               fontSize: 11,
@@ -75,8 +73,6 @@ class SleepTimerPicker extends StatelessWidget {
     );
   }
 }
-
-// ── Einzelner Timer-Chip ──────────────────────────────────────────────────────
 
 class _TimerChip extends StatelessWidget {
   final SleepTimerOption option;

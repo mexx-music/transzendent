@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/models/hypnosis_session.dart';
 import '../../../core/widgets/adaptive_background.dart';
@@ -12,6 +13,7 @@ class LibraryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final width = MediaQuery.of(context).size.width;
     final double maxWidth = width >= 900 ? 900 : 600;
 
@@ -20,9 +22,9 @@ class LibraryScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Bibliothek',
-          style: TextStyle(
+        title: Text(
+          l10n.libraryTitle,
+          style: const TextStyle(
             color: AppTheme.onBackground,
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -47,14 +49,14 @@ class LibraryScreen extends StatelessWidget {
                   return SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
                     child: isEmpty
-                        ? const _EmptyLibrary()
+                        ? _EmptyLibrary(l10n: l10n)
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (favorites.isNotEmpty) ...[
                                 _SectionHeader(
                                   icon: Icons.favorite_rounded,
-                                  title: 'Favoriten',
+                                  title: l10n.sectionFavorites,
                                 ),
                                 const SizedBox(height: 12),
                                 _SessionList(
@@ -66,7 +68,7 @@ class LibraryScreen extends StatelessWidget {
                               if (recent.isNotEmpty) ...[
                                 _SectionHeader(
                                   icon: Icons.history_rounded,
-                                  title: 'Zuletzt gehört',
+                                  title: l10n.sectionRecentlyPlayed,
                                 ),
                                 const SizedBox(height: 12),
                                 _SessionList(
@@ -95,8 +97,6 @@ class LibraryScreen extends StatelessWidget {
     );
   }
 }
-
-// ── Private Widgets ───────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   final IconData icon;
@@ -144,32 +144,33 @@ class _SessionList extends StatelessWidget {
 }
 
 class _EmptyLibrary extends StatelessWidget {
-  const _EmptyLibrary();
+  final AppLocalizations l10n;
+  const _EmptyLibrary({required this.l10n});
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(top: 80),
+    return Padding(
+      padding: const EdgeInsets.only(top: 80),
       child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.library_music_outlined,
             size: 64,
             color: AppTheme.primaryLight,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Text(
-            'Noch keine Einträge',
-            style: TextStyle(
+            l10n.libraryEmpty,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: AppTheme.onBackground,
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
-            'Starte eine Session oder markiere\nSessions als Favoriten.',
-            style: TextStyle(
+            l10n.libraryEmptyHint,
+            style: const TextStyle(
               fontSize: 13,
               color: AppTheme.onSurface,
               height: 1.5,

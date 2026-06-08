@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/models/background_sound.dart';
 import '../data/background_sound_repository.dart';
 
-/// Horizontaler Sound-Picker für den [SessionDetailScreen].
-///
-/// Gibt den ausgewählten [BackgroundSound] per [onChanged] zurück.
-/// Standard: Stille.
 class BackgroundSoundPicker extends StatelessWidget {
   final BackgroundSound selected;
   final ValueChanged<BackgroundSound> onChanged;
@@ -19,23 +16,23 @@ class BackgroundSoundPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final sounds = BackgroundSoundRepository.sounds;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Header ──────────────────────────────────────────────────────
-        const Row(
+        Row(
           children: [
-            Icon(
+            const Icon(
               Icons.surround_sound_rounded,
               color: AppTheme.primaryLight,
               size: 18,
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
-              'Hintergrund',
-              style: TextStyle(
+              l10n.backgroundSoundTitle,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.primaryLight,
@@ -46,7 +43,6 @@ class BackgroundSoundPicker extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // ── Horizontale Sound-Karten ─────────────────────────────────────
         SizedBox(
           height: 96,
           child: ListView.separated(
@@ -59,24 +55,17 @@ class BackgroundSoundPicker extends StatelessWidget {
               return _SoundChip(
                 sound: sound,
                 isSelected: isSelected,
-                onTap: () {
-                  // Premium-Sounds: Badge anzeigen, aber auswählen erlauben
-                  // (Sperr-Logik kommt in einer späteren Ausbaustufe)
-                  onChanged(sound);
-                },
+                onTap: () => onChanged(sound),
               );
             },
           ),
         ),
 
-        // ── Aktuelle Auswahl – Beschreibung ──────────────────────────────
         const SizedBox(height: 10),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 220),
           child: Text(
-            selected.isSilence
-                ? 'Keine Hintergrundmusik aktiv.'
-                : selected.description,
+            selected.isSilence ? l10n.backgroundSoundNone : selected.description,
             key: ValueKey(selected.id),
             style: const TextStyle(
               fontSize: 11,
@@ -89,8 +78,6 @@ class BackgroundSoundPicker extends StatelessWidget {
     );
   }
 }
-
-// ── Einzelne Sound-Karte ──────────────────────────────────────────────────────
 
 class _SoundChip extends StatelessWidget {
   final BackgroundSound sound;
@@ -124,7 +111,6 @@ class _SoundChip extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Icon + Label
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
               child: Column(
@@ -157,7 +143,6 @@ class _SoundChip extends StatelessWidget {
               ),
             ),
 
-            // Premium-Badge – oben rechts
             if (sound.isPremium)
               Positioned(
                 top: 4,

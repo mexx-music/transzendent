@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/models/background_sound.dart';
 import '../../../core/models/hypnosis_session.dart';
@@ -36,6 +37,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final size = MediaQuery.of(context).size;
     final isTablet = size.shortestSide >= 600;
     final double maxWidth = isTablet ? 900.0 : 600.0;
@@ -73,9 +75,8 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                 ),
                 onPressed: () => LibraryService.instance
                     .toggleFavorite(widget.session.id),
-                tooltip: isFav
-                    ? 'Aus Favoriten entfernen'
-                    : 'Zu Favoriten hinzufügen',
+                tooltip:
+                    isFav ? l10n.favoriteRemove : l10n.favoriteAdd,
               );
             },
           ),
@@ -110,7 +111,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                     const SizedBox(height: 8),
 
                     Text(
-                      '${widget.session.durationMinutes} Minuten',
+                      l10n.durationMinutes(widget.session.durationMinutes),
                       style: const TextStyle(
                         fontSize: 13,
                         color: AppTheme.primaryLight,
@@ -164,10 +165,10 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                     const SizedBox(height: 16),
 
                     if (widget.session.isPremium)
-                      const Text(
-                        'Diese Session ist Teil des Premium-Bereichs.',
-                        style:
-                            TextStyle(fontSize: 12, color: AppTheme.onSurface),
+                      Text(
+                        l10n.premiumHint,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppTheme.onSurface),
                         textAlign: TextAlign.center,
                       ),
                   ],
@@ -225,6 +226,7 @@ class _PlayerControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final svc = AudioPlayerService.instance;
 
     return ListenableBuilder(
@@ -276,10 +278,10 @@ class _PlayerControls extends StatelessWidget {
                     const SizedBox(width: 10),
                     Text(
                       isPlaying
-                          ? 'Pausieren'
+                          ? l10n.playerPause
                           : isPaused
-                              ? 'Fortsetzen'
-                              : 'Session starten',
+                              ? l10n.playerResume
+                              : l10n.playerStart,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -306,15 +308,15 @@ class _PlayerControls extends StatelessWidget {
                       color: AppTheme.primaryLight.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.stop_rounded,
+                      const Icon(Icons.stop_rounded,
                           color: AppTheme.onSurface, size: 20),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
-                        'Stoppen',
-                        style: TextStyle(
+                        l10n.playerStop,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppTheme.onSurface,
                           letterSpacing: 0.4,
@@ -328,9 +330,10 @@ class _PlayerControls extends StatelessWidget {
 
             if (session.audioPath == null) ...[
               const SizedBox(height: 10),
-              const Text(
-                'Noch keine Audiodatei hinterlegt.',
-                style: TextStyle(fontSize: 11, color: AppTheme.onSurface),
+              Text(
+                l10n.noAudioFile,
+                style:
+                    const TextStyle(fontSize: 11, color: AppTheme.onSurface),
                 textAlign: TextAlign.center,
               ),
             ],

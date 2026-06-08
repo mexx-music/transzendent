@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/models/hypnosis_session.dart';
 import '../../../core/models/session_category.dart';
@@ -14,6 +15,7 @@ class SessionListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final sessions = SessionRepository.sessionsForCategory(category.id);
     final width = MediaQuery.of(context).size.width;
     final double maxWidth = width >= 900 ? 900 : 600;
@@ -62,7 +64,13 @@ class SessionListScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: sessions.isEmpty
-                        ? const _EmptyState()
+                        ? Center(
+                            child: Text(
+                              l10n.noSessionsInCategory,
+                              style: const TextStyle(color: AppTheme.onSurface),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
                         : ListView.separated(
                             padding:
                                 const EdgeInsets.fromLTRB(24, 0, 24, 32),
@@ -90,21 +98,6 @@ class SessionListScreen extends StatelessWidget {
   void _openDetail(BuildContext context, HypnosisSession session) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => SessionDetailScreen(session: session)),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Noch keine Sessions in dieser Kategorie.',
-        style: TextStyle(color: AppTheme.onSurface),
-        textAlign: TextAlign.center,
-      ),
     );
   }
 }

@@ -1,0 +1,68 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Transzendent",
+  "appTagline": "Positive Suggestions · Hypnosis · Inner Peace",
+
+  "sectionRecentlyPlayed": "Recently Played",
+  "sectionFavorites": "Favorites",
+  "sectionCategories": "Categories",
+  "showAll": "Show All",
+
+  "playerNoTitle": "No session active",
+  "playerChooseSession": "Choose a session",
+  "playerPlaying": "Playing …",
+  "playerPaused": "Paused",
+  "playerStopped": "Stopped",
+  "playerStop": "Stop",
+  "playerPause": "Pause",
+  "playerResume": "Resume",
+  "playerStart": "Start session",
+
+  "noSessionsInCategory": "No sessions in this category yet.",
+
+  "favoriteAdd": "Add to favorites",
+  "favoriteRemove": "Remove from favorites",
+
+  "durationMinutes": "{minutes} minutes",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+
+  "noAudioFile": "No audio file available yet.",
+  "premiumHint": "This session is part of the Premium area.",
+  "premiumBadge": "Premium",
+
+  "libraryTitle": "Library",
+  "libraryEmpty": "Nothing here yet",
+  "libraryEmptyHint": "Start a session or mark\nsessions as favorites.",
+
+  "backgroundSoundTitle": "Background",
+  "backgroundSoundNone": "No background music active.",
+
+  "timerTitle": "Timer",
+  "timerUnlimited": "The session runs without automatic stop.",
+
+  "timerAutoStop": "Stops automatically after {minutes} minutes.",
+  "@timerAutoStop": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+
+  "suggestionTitle": "Suggestion",
+  "suggestionViewText": "View text",
+
+  "durationBadgeMin": "min",
+
+  "scriptPreviewTitle": "Suggestion Text",
+  "scriptPreviewTopics": "Topics of this session",
+  "scriptPreviewSpokenText": "Spoken Text",
+
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "settingsLanguageDe": "Deutsch",
+  "settingsLanguageEn": "English"
+}

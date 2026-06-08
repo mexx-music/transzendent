@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../player/services/audio_player_service.dart';
 
-/// Mini-Player-Leiste am unteren Bildschirmrand.
-/// Lauscht auf [AudioPlayerService.instance] und zeigt den aktuellen Zustand.
 class MiniPlayerBar extends StatelessWidget {
   const MiniPlayerBar({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return ListenableBuilder(
       listenable: AudioPlayerService.instance,
       builder: (context, _) {
         final svc = AudioPlayerService.instance;
         final session = svc.currentSession;
         final hasSession = session != null && !svc.isStopped;
+
+        final String statusLabel = switch (svc.status) {
+          PlayerStatus.playing => l10n.playerPlaying,
+          PlayerStatus.paused => l10n.playerPaused,
+          PlayerStatus.stopped => l10n.playerStopped,
+        };
 
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
@@ -67,7 +74,7 @@ class MiniPlayerBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      hasSession ? session.title : 'Kein Titel aktiv',
+                      hasSession ? session.title : l10n.playerNoTitle,
                       style: const TextStyle(
                         color: AppTheme.onBackground,
                         fontSize: 14,
@@ -78,9 +85,7 @@ class MiniPlayerBar extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      hasSession
-                          ? _statusLabel(svc.status)
-                          : 'Wähle eine Session aus',
+                      hasSession ? statusLabel : l10n.playerChooseSession,
                       style: const TextStyle(
                         color: AppTheme.onSurface,
                         fontSize: 11,
@@ -99,7 +104,7 @@ class MiniPlayerBar extends StatelessWidget {
                     size: 24,
                   ),
                   onPressed: () async => AudioPlayerService.instance.stop(),
-                  tooltip: 'Stoppen',
+                  tooltip: l10n.playerStop,
                 ),
 
               // ── Play / Pause ──────────────────────────────────────────────
@@ -122,7 +127,7 @@ class MiniPlayerBar extends StatelessWidget {
                         }
                       }
                     : null,
-                tooltip: svc.isPlaying ? 'Pause' : 'Fortsetzen',
+                tooltip: svc.isPlaying ? l10n.playerPause : l10n.playerResume,
               ),
             ],
           ),
@@ -130,10 +135,4 @@ class MiniPlayerBar extends StatelessWidget {
       },
     );
   }
-
-  String _statusLabel(PlayerStatus status) => switch (status) {
-    PlayerStatus.playing => 'Wird abgespielt …',
-    PlayerStatus.paused => 'Pausiert',
-    PlayerStatus.stopped => 'Gestoppt',
-  };
 }

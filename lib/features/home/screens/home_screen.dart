@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
+import '../../../app/app_router.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/models/hypnosis_session.dart';
@@ -16,6 +18,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final width = MediaQuery.of(context).size.width;
     final double maxWidth = width >= 1100 ? 1100 : width >= 900 ? 900 : 600;
     final categories = SessionRepository.categories;
@@ -57,7 +60,7 @@ class HomeScreen extends StatelessWidget {
                             SliverToBoxAdapter(
                               child: _HomeSectionHeader(
                                 icon: Icons.history_rounded,
-                                title: 'Zuletzt gehört',
+                                title: l10n.sectionRecentlyPlayed,
                                 onSeeAll: () => _openLibrary(context),
                               ),
                             ),
@@ -88,7 +91,7 @@ class HomeScreen extends StatelessWidget {
                             SliverToBoxAdapter(
                               child: _HomeSectionHeader(
                                 icon: Icons.favorite_rounded,
-                                title: 'Favoriten',
+                                title: l10n.sectionFavorites,
                                 onSeeAll: () => _openLibrary(context),
                               ),
                             ),
@@ -118,7 +121,7 @@ class HomeScreen extends StatelessWidget {
                           SliverToBoxAdapter(
                             child: _HomeSectionHeader(
                               icon: Icons.apps_rounded,
-                              title: 'Kategorien',
+                              title: l10n.sectionCategories,
                             ),
                           ),
                           SliverPadding(
@@ -215,6 +218,7 @@ class _HomeSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
@@ -234,9 +238,9 @@ class _HomeSectionHeader extends StatelessWidget {
           if (onSeeAll != null)
             GestureDetector(
               onTap: onSeeAll,
-              child: const Text(
-                'Alle anzeigen',
-                style: TextStyle(
+              child: Text(
+                l10n.showAll,
+                style: const TextStyle(
                   fontSize: 12,
                   color: AppTheme.primaryLight,
                   letterSpacing: 0.3,
@@ -252,19 +256,38 @@ class _HomeSectionHeader extends StatelessWidget {
 class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final tt = Theme.of(context).textTheme;
-    return Column(
+    return Stack(
       children: [
-        Text(
-          AppConstants.appName.toUpperCase(),
-          style: tt.displaySmall,
-          textAlign: TextAlign.center,
+        Column(
+          children: [
+            Text(
+              AppConstants.appName.toUpperCase(),
+              style: tt.displaySmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.appTagline,
+              style: tt.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          AppConstants.appTagline,
-          style: tt.titleMedium,
-          textAlign: TextAlign.center,
+        Positioned(
+          top: 0,
+          right: 16,
+          child: IconButton(
+            icon: const Icon(
+              Icons.settings_rounded,
+              color: AppTheme.onSurface,
+              size: 22,
+            ),
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.settings),
+            tooltip: l10n.settingsTitle,
+          ),
         ),
       ],
     );

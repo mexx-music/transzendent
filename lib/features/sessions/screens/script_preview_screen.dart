@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/models/suggestion_script.dart';
 import '../../../core/widgets/adaptive_background.dart';
 import '../../../core/widgets/glass_card.dart';
 
-/// Zeigt den vollständigen gesprochenen Text eines [SuggestionScript].
 class ScriptPreviewScreen extends StatelessWidget {
   final SuggestionScript script;
 
@@ -12,6 +12,8 @@ class ScriptPreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -24,9 +26,9 @@ class ScriptPreviewScreen extends StatelessWidget {
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Suggestions-Text',
-          style: TextStyle(
+        title: Text(
+          l10n.scriptPreviewTitle,
+          style: const TextStyle(
             color: AppTheme.onBackground,
             fontSize: 17,
             fontWeight: FontWeight.w500,
@@ -37,103 +39,96 @@ class ScriptPreviewScreen extends StatelessWidget {
       ),
       body: AdaptiveBackground(
         child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Titel
-                  Text(
-                    script.title,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  script.title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.onBackground,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                Text(
+                  l10n.durationMinutes(script.durationMinutes),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.primaryLight,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                GlassCard(
+                  padding: const EdgeInsets.all(18),
+                  child: Text(
+                    script.introText,
                     style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: AppTheme.onSurface,
+                      height: 1.6,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                Text(
+                  l10n.scriptPreviewTopics,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.onSurface,
+                    letterSpacing: 0.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: script.suggestionWords
+                      .map((word) => _SuggestionChip(label: word))
+                      .toList(),
+                ),
+                const SizedBox(height: 28),
+
+                Divider(color: AppTheme.divider, thickness: 1),
+                const SizedBox(height: 20),
+
+                Text(
+                  l10n.scriptPreviewSpokenText,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.onSurface,
+                    letterSpacing: 0.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                GlassCard(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    script.spokenScript,
+                    style: const TextStyle(
+                      fontSize: 15,
                       color: AppTheme.onBackground,
-                      letterSpacing: 0.4,
+                      height: 1.85,
+                      letterSpacing: 0.2,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                ),
+                const SizedBox(height: 28),
 
-                  // Dauer
-                  Text(
-                    '${script.durationMinutes} Minuten',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.primaryLight,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Einleitung
-                  GlassCard(
-                    padding: const EdgeInsets.all(18),
-                    child: Text(
-                      script.introText,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.onSurface,
-                        height: 1.6,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Schlüsselwörter
-                  const Text(
-                    'Themen dieser Session',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.onSurface,
-                      letterSpacing: 0.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: script.suggestionWords
-                        .map((word) => _SuggestionChip(label: word))
-                        .toList(),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Divider
-                  Divider(color: AppTheme.divider, thickness: 1),
-                  const SizedBox(height: 20),
-
-                  // Gesprochener Text
-                  const Text(
-                    'Gesprochener Text',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.onSurface,
-                      letterSpacing: 0.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  GlassCard(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      script.spokenScript,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: AppTheme.onBackground,
-                        height: 1.85,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Sicherheitshinweis
-                  _SafetyNote(note: script.safetyNote),
-                ],
-              ),
+                _SafetyNote(note: script.safetyNote),
+              ],
             ),
+          ),
         ),
       ),
     );
@@ -186,17 +181,17 @@ class _SafetyNote extends StatelessWidget {
         children: [
           const Icon(
             Icons.info_outline_rounded,
-            size: 18,
             color: AppTheme.onSurface,
+            size: 18,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               note,
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 color: AppTheme.onSurface,
-                height: 1.55,
+                height: 1.5,
               ),
             ),
           ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:transcendent_mind/l10n/app_localizations.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/models/hypnosis_session.dart';
 import '../../../core/widgets/glass_card.dart';
 
-/// Karte für eine einzelne Session in der Listen-Ansicht.
 class SessionCard extends StatelessWidget {
   final HypnosisSession session;
   final VoidCallback onTap;
@@ -12,6 +12,8 @@ class SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return GestureDetector(
       onTap: onTap,
       child: GlassCard(
@@ -19,11 +21,9 @@ class SessionCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Dauer-Badge
-            _DurationBadge(minutes: session.durationMinutes),
+            _DurationBadge(minutes: session.durationMinutes, l10n: l10n),
             const SizedBox(width: 16),
 
-            // Titel & Beschreibung
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +41,7 @@ class SessionCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (session.isPremium) const _PremiumBadge(),
+                      if (session.isPremium) _PremiumBadge(l10n: l10n),
                     ],
                   ),
                   const SizedBox(height: 5),
@@ -72,11 +72,10 @@ class SessionCard extends StatelessWidget {
   }
 }
 
-// ── Private Hilfs-Widgets ─────────────────────────────────────────────────────
-
 class _DurationBadge extends StatelessWidget {
   final int minutes;
-  const _DurationBadge({required this.minutes});
+  final AppLocalizations l10n;
+  const _DurationBadge({required this.minutes, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -109,9 +108,9 @@ class _DurationBadge extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          const Text(
-            'min',
-            style: TextStyle(fontSize: 9, color: Colors.white70),
+          Text(
+            l10n.durationBadgeMin,
+            style: const TextStyle(fontSize: 9, color: Colors.white70),
           ),
         ],
       ),
@@ -120,7 +119,8 @@ class _DurationBadge extends StatelessWidget {
 }
 
 class _PremiumBadge extends StatelessWidget {
-  const _PremiumBadge();
+  final AppLocalizations l10n;
+  const _PremiumBadge({required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -133,9 +133,9 @@ class _PremiumBadge extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: const Text(
-        'Premium',
-        style: TextStyle(
+      child: Text(
+        l10n.premiumBadge,
+        style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,
           color: Colors.black87,

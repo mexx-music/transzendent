@@ -1,0 +1,133 @@
+{
+  "@@locale": "de",
+
+  "appTitle": "Transzendent",
+  "@appTitle": { "description": "App-Name" },
+
+  "appTagline": "Positive Suggestionen · Hypnose · Innere Ruhe",
+  "@appTagline": { "description": "App-Tagline unter dem Titel" },
+
+  "sectionRecentlyPlayed": "Zuletzt gehört",
+  "@sectionRecentlyPlayed": { "description": "Abschnittsüberschrift – Zuletzt gehört" },
+
+  "sectionFavorites": "Favoriten",
+  "@sectionFavorites": { "description": "Abschnittsüberschrift – Favoriten" },
+
+  "sectionCategories": "Kategorien",
+  "@sectionCategories": { "description": "Abschnittsüberschrift – Kategorien" },
+
+  "showAll": "Alle anzeigen",
+  "@showAll": { "description": "Link zum Anzeigen aller Einträge" },
+
+  "playerNoTitle": "Kein Titel aktiv",
+  "@playerNoTitle": { "description": "Mini-Player: kein Titel aktiv" },
+
+  "playerChooseSession": "Wähle eine Session aus",
+  "@playerChooseSession": { "description": "Mini-Player: Aufforderung zur Auswahl" },
+
+  "playerPlaying": "Wird abgespielt …",
+  "@playerPlaying": { "description": "Playerstatus: läuft" },
+
+  "playerPaused": "Pausiert",
+  "@playerPaused": { "description": "Playerstatus: pausiert" },
+
+  "playerStopped": "Gestoppt",
+  "@playerStopped": { "description": "Playerstatus: gestoppt" },
+
+  "playerStop": "Stoppen",
+  "@playerStop": { "description": "Tooltip/Button: Stoppen" },
+
+  "playerPause": "Pause",
+  "@playerPause": { "description": "Tooltip: Pause" },
+
+  "playerResume": "Fortsetzen",
+  "@playerResume": { "description": "Tooltip/Button: Fortsetzen" },
+
+  "playerStart": "Session starten",
+  "@playerStart": { "description": "Button: Session starten" },
+
+  "noSessionsInCategory": "Noch keine Sessions in dieser Kategorie.",
+  "@noSessionsInCategory": { "description": "Leer-Zustand SessionListScreen" },
+
+  "favoriteAdd": "Zu Favoriten hinzufügen",
+  "@favoriteAdd": { "description": "Tooltip Favoriten-Button: hinzufügen" },
+
+  "favoriteRemove": "Aus Favoriten entfernen",
+  "@favoriteRemove": { "description": "Tooltip Favoriten-Button: entfernen" },
+
+  "durationMinutes": "{minutes} Minuten",
+  "@durationMinutes": {
+    "description": "Dauer in Minuten",
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+
+  "noAudioFile": "Noch keine Audiodatei hinterlegt.",
+  "@noAudioFile": { "description": "Hinweis wenn kein Audio vorhanden" },
+
+  "premiumHint": "Diese Session ist Teil des Premium-Bereichs.",
+  "@premiumHint": { "description": "Premium-Hinweis auf DetailScreen" },
+
+  "premiumBadge": "Premium",
+  "@premiumBadge": { "description": "Premium-Badge-Label" },
+
+  "libraryTitle": "Bibliothek",
+  "@libraryTitle": { "description": "Titel des Bibliothek-Screens" },
+
+  "libraryEmpty": "Noch keine Einträge",
+  "@libraryEmpty": { "description": "Leer-Zustand Bibliothek: Überschrift" },
+
+  "libraryEmptyHint": "Starte eine Session oder markiere\nSessions als Favoriten.",
+  "@libraryEmptyHint": { "description": "Leer-Zustand Bibliothek: Hinweistext" },
+
+  "backgroundSoundTitle": "Hintergrund",
+  "@backgroundSoundTitle": { "description": "Abschnittsüberschrift Hintergrundklang-Picker" },
+
+  "backgroundSoundNone": "Keine Hintergrundmusik aktiv.",
+  "@backgroundSoundNone": { "description": "Beschreibung wenn Stille ausgewählt" },
+
+  "timerTitle": "Timer",
+  "@timerTitle": { "description": "Abschnittsüberschrift Sleep-Timer-Picker" },
+
+  "timerUnlimited": "Die Session läuft ohne automatischen Stopp.",
+  "@timerUnlimited": { "description": "Timer-Hinweis: kein automatischer Stopp" },
+
+  "timerAutoStop": "Stoppt automatisch nach {minutes} Minuten.",
+  "@timerAutoStop": {
+    "description": "Timer-Hinweis mit Minutenangabe",
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+
+  "suggestionTitle": "Suggestion",
+  "@suggestionTitle": { "description": "Abschnittsüberschrift Suggestion-Karte" },
+
+  "suggestionViewText": "Text ansehen",
+  "@suggestionViewText": { "description": "Button: Suggestion-Text ansehen" },
+
+  "durationBadgeMin": "min",
+  "@durationBadgeMin": { "description": "Abkürzung Minuten im Dauer-Badge" },
+
+  "scriptPreviewTitle": "Suggestions-Text",
+  "@scriptPreviewTitle": { "description": "AppBar-Titel ScriptPreviewScreen" },
+
+  "scriptPreviewTopics": "Themen dieser Session",
+  "@scriptPreviewTopics": { "description": "Abschnittsüberschrift: Themen" },
+
+  "scriptPreviewSpokenText": "Gesprochener Text",
+  "@scriptPreviewSpokenText": { "description": "Abschnittsüberschrift: Gesprochener Text" },
+
+  "settingsTitle": "Einstellungen",
+  "@settingsTitle": { "description": "Titel des Einstellungen-Screens" },
+
+  "settingsLanguage": "Sprache",
+  "@settingsLanguage": { "description": "Einstellungs-Abschnitt: Sprache" },
+
+  "settingsLanguageDe": "Deutsch",
+  "@settingsLanguageDe": { "description": "Sprachoption: Deutsch" },
+
+  "settingsLanguageEn": "English",
+  "@settingsLanguageEn": { "description": "Sprachoption: Englisch" }
+}

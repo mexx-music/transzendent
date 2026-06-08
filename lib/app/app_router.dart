@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/library/screens/library_screen.dart';
+import '../features/settings/screens/settings_screen.dart';
 
-/// Zentrale Route-Definition.
-/// Sessions werden per Navigator.push mit Argument übergeben (kein Named-Route),
-/// da sie kontextabhängige Daten (SessionCategory) benötigen.
 class AppRouter {
   AppRouter._();
 
@@ -17,7 +15,6 @@ class AppRouter {
   static Map<String, WidgetBuilder> get routes => {
     home: (_) => const HomeScreen(),
     library: (_) => const LibraryScreen(),
-    // sessions, player, settings: werden per Navigator.push
-    // mit Daten-Argumenten aufgerufen – keine Named-Route nötig.
+    settings: (_) => const SettingsScreen(),
   };
 }
