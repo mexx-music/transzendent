@@ -65,5 +65,8 @@
   "settingsTitle": "Settings",
   "settingsLanguage": "Language",
   "settingsLanguageDe": "Deutsch",
-  "settingsLanguageEn": "English"
+  "settingsLanguageEn": "English",
+
+  "volumeVoice": "Voice",
+  "volumeBackground": "Background"
 }

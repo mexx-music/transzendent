@@ -35,6 +35,14 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
     _selectedTimer = SleepTimerRepository.defaultOption;
   }
 
+  void _onSoundChanged(BackgroundSound sound) {
+    setState(() => _selectedSound = sound);
+    final svc = AudioPlayerService.instance;
+    if (!svc.isStopped) {
+      svc.playBackground(sound);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -73,10 +81,9 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                   color:
                       isFav ? const Color(0xFFE040FB) : AppTheme.onBackground,
                 ),
-                onPressed: () => LibraryService.instance
-                    .toggleFavorite(widget.session.id),
-                tooltip:
-                    isFav ? l10n.favoriteRemove : l10n.favoriteAdd,
+                onPressed: () =>
+                    LibraryService.instance.toggleFavorite(widget.session.id),
+                tooltip: isFav ? l10n.favoriteRemove : l10n.favoriteAdd,
               );
             },
           ),
@@ -143,9 +150,14 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                       padding: const EdgeInsets.all(20),
                       child: BackgroundSoundPicker(
                         selected: _selectedSound,
-                        onChanged: (sound) =>
-                            setState(() => _selectedSound = sound),
+                        onChanged: _onSoundChanged,
                       ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    GlassCard(
+                      padding: const EdgeInsets.all(20),
+                      child: _VolumeSliders(),
                     ),
                     const SizedBox(height: 16),
 
@@ -161,7 +173,10 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    _PlayerControls(session: widget.session),
+                    _PlayerControls(
+                      session: widget.session,
+                      backgroundSound: _selectedSound,
+                    ),
                     const SizedBox(height: 16),
 
                     if (widget.session.isPremium)
@@ -220,9 +235,111 @@ class _CoverArt extends StatelessWidget {
   }
 }
 
+class _VolumeSliders extends StatelessWidget {
+  const _VolumeSliders();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final svc = AudioPlayerService.instance;
+
+    return ListenableBuilder(
+      listenable: svc,
+      builder: (context, _) {
+        return Column(
+          children: [
+            _VolumeRow(
+              icon: Icons.record_voice_over_rounded,
+              label: l10n.volumeVoice,
+              value: svc.voiceVolume,
+              onChanged: (v) => svc.setVoiceVolume(v),
+            ),
+            const SizedBox(height: 4),
+            _VolumeRow(
+              icon: Icons.surround_sound_rounded,
+              label: l10n.volumeBackground,
+              value: svc.backgroundVolume,
+              onChanged: (v) => svc.setBackgroundVolume(v),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _VolumeRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _VolumeRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: AppTheme.primaryLight, size: 18),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 84,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppTheme.onSurface,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 3,
+              thumbShape:
+                  const RoundSliderThumbShape(enabledThumbRadius: 7),
+              overlayShape:
+                  const RoundSliderOverlayShape(overlayRadius: 14),
+            ),
+            child: Slider(
+              value: value,
+              onChanged: onChanged,
+              activeColor: AppTheme.primaryLight,
+              inactiveColor:
+                  AppTheme.primaryLight.withValues(alpha: 0.2),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 36,
+          child: Text(
+            '${(value * 100).round()}%',
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppTheme.onSurface,
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _PlayerControls extends StatelessWidget {
   final HypnosisSession session;
-  const _PlayerControls({required this.session});
+  final BackgroundSound backgroundSound;
+
+  const _PlayerControls({
+    required this.session,
+    required this.backgroundSound,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +363,10 @@ class _PlayerControls extends StatelessWidget {
                   await svc.resume();
                 } else {
                   LibraryService.instance.markRecentlyPlayed(session.id);
-                  await svc.play(session);
+                  await svc.play(
+                    session,
+                    backgroundSound: backgroundSound,
+                  );
                 }
               },
               child: Container(
@@ -332,8 +452,8 @@ class _PlayerControls extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 l10n.noAudioFile,
-                style:
-                    const TextStyle(fontSize: 11, color: AppTheme.onSurface),
+                style: const TextStyle(
+                    fontSize: 11, color: AppTheme.onSurface),
                 textAlign: TextAlign.center,
               ),
             ],

@@ -132,5 +132,11 @@
   "@settingsLanguageDe": { "description": "Sprachoption: Deutsch" },
 
   "settingsLanguageEn": "English",
-  "@settingsLanguageEn": { "description": "Sprachoption: Englisch" }
+  "@settingsLanguageEn": { "description": "Sprachoption: Englisch" },
+
+  "volumeVoice": "Stimme",
+  "@volumeVoice": { "description": "Lautstärkeregler: Stimme" },
+
+  "volumeBackground": "Hintergrund",
+  "@volumeBackground": { "description": "Lautstärkeregler: Hintergrundton" }
 }

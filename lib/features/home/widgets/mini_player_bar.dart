@@ -85,11 +85,17 @@ class MiniPlayerBar extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      hasSession ? statusLabel : l10n.playerChooseSession,
+                      hasSession
+                          ? (svc.hasActiveBackground
+                              ? '$statusLabel · ${svc.selectedBackgroundSound!.title}'
+                              : statusLabel)
+                          : l10n.playerChooseSession,
                       style: const TextStyle(
                         color: AppTheme.onSurface,
                         fontSize: 11,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

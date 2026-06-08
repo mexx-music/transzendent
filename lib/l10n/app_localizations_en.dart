@@ -135,4 +135,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguageEn => 'English';
+
+  @override
+  String get volumeVoice => 'Voice';
+
+  @override
+  String get volumeBackground => 'Background';
 }

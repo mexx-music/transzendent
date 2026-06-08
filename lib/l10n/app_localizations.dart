@@ -343,6 +343,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'English'**
   String get settingsLanguageEn;
+
+  /// Lautstärkeregler: Stimme
+  ///
+  /// In de, this message translates to:
+  /// **'Stimme'**
+  String get volumeVoice;
+
+  /// Lautstärkeregler: Hintergrundton
+  ///
+  /// In de, this message translates to:
+  /// **'Hintergrund'**
+  String get volumeBackground;
 }
 
 class _AppLocalizationsDelegate
