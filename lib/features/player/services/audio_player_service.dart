@@ -7,11 +7,15 @@ import '../../../core/models/sleep_timer_option.dart';
 
 enum PlayerStatus { stopped, playing, paused }
 
+/// Per-sound loading state – separate from [PlayerStatus] so the UI can show
+/// an active/loading chip before the audio is actually playing.
+enum BackgroundSoundState { loading, playing, error }
+
 class AudioPlayerService extends ChangeNotifier {
   AudioPlayerService._() {
     _voiceSub = _voicePlayer.playbackEventStream.listen(
       (_) {},
-      onError: (e, st) => debugPrint('[Voice] playbackEventStream error: $e'),
+      onError: (e, _) => debugPrint('[Voice] playbackEventStream error: $e'),
     );
   }
   static final AudioPlayerService instance = AudioPlayerService._();
@@ -23,17 +27,23 @@ class AudioPlayerService extends ChangeNotifier {
   StreamSubscription<PlaybackEvent>? _voiceSub;
   double _voiceVolume = 1.0;
 
+  // Guard against concurrent play() calls for the same or different session.
+  bool _voiceBusy = false;
+
   // ── Background mixer ──────────────────────────────────────────────────────
   // Players are kept alive across toggle cycles – never disposed mid-session.
-  // This mirrors the Schnurr pattern: pre-allocate once, reuse always.
   final Map<String, AudioPlayer> _bgPlayers = {};
   final Map<String, StreamSubscription<PlaybackEvent>> _bgSubs = {};
-  final Map<String, String> _bgAssets = {};   // cached assetPath for reload
+  final Map<String, String> _bgAssets = {};
   final Map<String, double> _bgVolumes = {};
+
+  // Sound IDs that the user intends to hear (set BEFORE any async work).
   final List<String> _activeIds = [];
 
-  // Concurrency guards per sound (busy flag + op-id for stale detection)
-  final Map<String, bool> _bgBusy = {};
+  // Per-sound loading/playing/error state for UI feedback.
+  final Map<String, BackgroundSoundState> _bgStates = {};
+
+  // Op-id per sound: incremented on every toggle so stale async ops abort.
   final Map<String, int> _bgOpId = {};
 
   // ── Session state ─────────────────────────────────────────────────────────
@@ -57,6 +67,13 @@ class AudioPlayerService extends ChangeNotifier {
   List<String> get activeBackgroundSoundIds => List.unmodifiable(_activeIds);
 
   bool isBackgroundActive(String soundId) => _activeIds.contains(soundId);
+
+  /// Returns the per-sound loading state, or null when inactive.
+  BackgroundSoundState? backgroundSoundStateFor(String soundId) =>
+      _bgStates[soundId];
+
+  bool isBackgroundLoading(String soundId) =>
+      _bgStates[soundId] == BackgroundSoundState.loading;
 
   double backgroundVolumeFor(String soundId) =>
       _bgVolumes[soundId] ?? _defaultVolume(soundId);
@@ -97,44 +114,55 @@ class AudioPlayerService extends ChangeNotifier {
 
   // ── Hintergrund-Mixer ─────────────────────────────────────────────────────
 
-  /// Toggles a background sound on or off.
-  /// Silence chip acts as "stop all".
+  /// Toggles a sound on or off.
+  ///
+  /// UI state (active + loading indicator) is updated synchronously before any
+  /// audio I/O so the button reacts instantly.
   Future<void> toggleBackgroundSound(BackgroundSound sound) async {
     if (sound.isSilence) {
       await stopAllBackgroundSounds();
       return;
     }
 
-    // Busy guard: ignore rapid double-taps that would race async operations.
-    if (_bgBusy[sound.id] == true) return;
-    _bgBusy[sound.id] = true;
+    // Bump op-id: any in-flight async work for this sound detects the new id
+    // and aborts, preventing stale completions from overwriting newer state.
     _bgOpId[sound.id] = (_bgOpId[sound.id] ?? 0) + 1;
     final opId = _bgOpId[sound.id]!;
 
-    try {
-      if (isBackgroundActive(sound.id)) {
-        await _deactivateBackground(sound.id, opId: opId);
-      } else {
-        await _activateBackground(sound, opId: opId);
-      }
-      if (_disposed || opId != _bgOpId[sound.id]) return;
-      notifyListeners();
-    } finally {
-      _bgBusy[sound.id] = false;
+    if (isBackgroundActive(sound.id)) {
+      // ── DEACTIVATE ────────────────────────────────────────────────────────
+      // Immediate UI: remove from active list and clear state.
+      _activeIds.remove(sound.id);
+      _bgStates.remove(sound.id);
+      notifyListeners(); // instant feedback
+
+      await _stopAudioForId(sound.id);
+    } else {
+      // ── ACTIVATE ──────────────────────────────────────────────────────────
+      // Immediate UI: mark sound as active+loading before any async work.
+      _activeIds.add(sound.id);
+      _bgStates[sound.id] = BackgroundSoundState.loading;
+      notifyListeners(); // instant feedback – slider + chip appear now
+
+      await _startAudioForSound(sound, opId: opId);
     }
   }
 
-  Future<void> _activateBackground(
+  Future<void> _startAudioForSound(
     BackgroundSound sound, {
     required int opId,
   }) async {
-    if (_disposed || sound.assetPath == null) return;
+    if (_disposed || sound.assetPath == null) {
+      _activeIds.remove(sound.id);
+      _bgStates.remove(sound.id);
+      notifyListeners();
+      return;
+    }
 
+    _bgAssets[sound.id] = sound.assetPath!;
     final volume = _bgVolumes[sound.id] ?? _defaultVolume(sound.id);
     _bgVolumes[sound.id] = volume;
-    _bgAssets[sound.id] = sound.assetPath!;
 
-    // Reuse existing player or create a new one and register it in the pool.
     final player = _bgPlayers.putIfAbsent(sound.id, () {
       final p = AudioPlayer();
       _bgSubs[sound.id] = p.playbackEventStream.listen(
@@ -145,21 +173,21 @@ class AudioPlayerService extends ChangeNotifier {
     });
 
     try {
-      // Web: must hard-stop before (re-)loading to flush the AudioContext cache.
+      // Web: hard-stop before (re-)loading to flush the AudioContext cache.
       if (kIsWeb) {
         try { await player.stop(); } catch (_) {}
         await Future.delayed(const Duration(milliseconds: 80));
         if (_disposed || opId != _bgOpId[sound.id]) return;
       }
 
-      // Reload asset when the player has no source (idle) or has finished.
+      // Reload asset when the player has no source or has finished.
       final ps = player.playerState.processingState;
       if (ps == ProcessingState.idle || ps == ProcessingState.completed) {
         await player.setAsset(sound.assetPath!);
         if (_disposed || opId != _bgOpId[sound.id]) return;
       }
 
-      // Wait until the player signals it is ready to play (max 2 s).
+      // Wait until ready (max 2 s).
       try {
         await player.playerStateStream
             .firstWhere((s) =>
@@ -175,17 +203,22 @@ class AudioPlayerService extends ChangeNotifier {
       await player.play();
 
       if (_disposed || opId != _bgOpId[sound.id]) return;
-      _activeIds.add(sound.id);
-      debugPrint(
-        '[BG] Gestartet: "${sound.title}" (${(volume * 100).round()}%)',
-      );
+
+      _bgStates[sound.id] = BackgroundSoundState.playing;
+      debugPrint('[BG] Gestartet: "${sound.title}" (${(volume * 100).round()}%)');
+      notifyListeners();
     } catch (e) {
       debugPrint('[BG] Fehler beim Starten "${sound.title}": $e');
+      // Only update state if this op is still current (not preempted).
+      if (!_disposed && opId == _bgOpId[sound.id]) {
+        _activeIds.remove(sound.id);
+        _bgStates[sound.id] = BackgroundSoundState.error;
+        notifyListeners();
+      }
     }
   }
 
-  Future<void> _deactivateBackground(String soundId, {int? opId}) async {
-    _activeIds.remove(soundId);
+  Future<void> _stopAudioForId(String soundId) async {
     final player = _bgPlayers[soundId];
     if (player == null) return;
     try {
@@ -195,16 +228,23 @@ class AudioPlayerService extends ChangeNotifier {
     } catch (e) {
       debugPrint('[BG] Fehler beim Stoppen $soundId: $e');
     }
-    // Player stays in the pool so it can be reused quickly on next toggle.
+    // Player stays in the pool for fast reuse on next toggle.
   }
 
   Future<void> stopAllBackgroundSounds() async {
+    // Cancel all in-flight ops first.
+    for (final id in _activeIds) {
+      _bgOpId[id] = (_bgOpId[id] ?? 0) + 1;
+    }
     final ids = List<String>.from(_activeIds);
+    _activeIds.clear();
+    _bgStates.clear();
+    notifyListeners(); // instant UI reset
+
     for (final id in ids) {
-      await _deactivateBackground(id);
+      await _stopAudioForId(id);
     }
     debugPrint('[BG] Alle gestoppt.');
-    notifyListeners();
   }
 
   // ── Wiedergabe ────────────────────────────────────────────────────────────
@@ -212,48 +252,62 @@ class AudioPlayerService extends ChangeNotifier {
   Future<void> play(HypnosisSession session) async {
     if (_disposed) return;
 
-    if (session.audioPath == null) {
-      debugPrint('[Voice] Kein audioPath – übersprungen.');
-      _currentSession = session;
-      _status = PlayerStatus.playing;
-    } else {
-      try {
-        debugPrint('[Voice] Lade: ${session.audioPath}');
-        if (_currentSession?.id != session.id) {
-          // Web: stop first to flush AudioContext before loading new source.
-          if (kIsWeb) {
-            try { await _voicePlayer.stop(); } catch (_) {}
-            await Future.delayed(const Duration(milliseconds: 80));
-          } else {
-            await _voicePlayer.stop();
-          }
-          if (_disposed) return;
-          await _voicePlayer.setAsset(session.audioPath!);
-          await _voicePlayer.setVolume(_voiceVolume);
-          debugPrint('[Voice] Asset geladen.');
-        }
-        _currentSession = session;
-        await _voicePlayer.play();
-        _status = PlayerStatus.playing;
-        debugPrint('[Voice] Gestartet: "${session.title}"');
-      } catch (e) {
-        debugPrint('[Voice] Fehler: $e');
-        _currentSession = session;
-        _status = PlayerStatus.stopped;
-      }
+    // Idempotency: if this exact session is already loading or playing, bail.
+    if (_currentSession?.id == session.id &&
+        (_voiceBusy || _status == PlayerStatus.playing)) {
+      return;
     }
 
-    // Resume background players that are registered as active but not playing.
+    // Guard against a second concurrent call from a UI double-tap.
+    if (_voiceBusy) return;
+    _voiceBusy = true;
+
+    // Set session + status immediately so the UI responds before any I/O.
+    _currentSession = session;
+    _status = PlayerStatus.playing;
+    notifyListeners();
+
+    try {
+      if (session.audioPath != null) {
+        debugPrint('[Voice] Lade: ${session.audioPath}');
+
+        // Web: flush AudioContext before loading a new source.
+        if (kIsWeb) {
+          try { await _voicePlayer.stop(); } catch (_) {}
+          await Future.delayed(const Duration(milliseconds: 80));
+        } else {
+          await _voicePlayer.stop();
+        }
+        if (_disposed) return;
+
+        await _voicePlayer.setAsset(session.audioPath!);
+        await _voicePlayer.setVolume(_voiceVolume);
+        debugPrint('[Voice] Asset geladen.');
+
+        if (_disposed) return;
+        await _voicePlayer.play();
+        debugPrint('[Voice] Gestartet: "${session.title}"');
+      }
+    } catch (e) {
+      debugPrint('[Voice] Fehler: $e');
+      if (!_disposed) {
+        _status = PlayerStatus.stopped;
+        notifyListeners();
+        return;
+      }
+    } finally {
+      _voiceBusy = false;
+    }
+
+    // Resume background players that are registered active but not playing.
     for (final id in List<String>.from(_activeIds)) {
       final player = _bgPlayers[id];
       if (player == null) continue;
       try {
         if (!player.playing) {
-          // After stop(), just_audio may leave the player in idle state.
-          // Reload asset from cache if needed before calling play().
           if (player.playerState.processingState == ProcessingState.idle) {
-            final assetPath = _bgAssets[id];
-            if (assetPath != null) await player.setAsset(assetPath);
+            final path = _bgAssets[id];
+            if (path != null) await player.setAsset(path);
           }
           await player.setLoopMode(LoopMode.all);
           await player.seek(Duration.zero);
@@ -272,12 +326,12 @@ class AudioPlayerService extends ChangeNotifier {
     if (_disposed) return;
     try {
       await _voicePlayer.pause();
-      for (final player in _bgPlayers.values) {
-        await player.pause();
+      // Pause all active background players.
+      for (final id in _activeIds) {
+        final player = _bgPlayers[id];
+        if (player != null) await player.pause();
       }
-      debugPrint(
-        '[Player] Pausiert (Stimme + ${_activeIds.length} Hintergrund).',
-      );
+      debugPrint('[Player] Pausiert (${_activeIds.length} Hintergrund).');
     } catch (e) {
       debugPrint('[Player] Fehler beim Pausieren: $e');
     }
@@ -295,9 +349,7 @@ class AudioPlayerService extends ChangeNotifier {
         if (player != null) await player.play();
       }
       _status = PlayerStatus.playing;
-      debugPrint(
-        '[Player] Fortgesetzt (Stimme + ${_activeIds.length} Hintergrund).',
-      );
+      debugPrint('[Player] Fortgesetzt (${_activeIds.length} Hintergrund).');
     } catch (e) {
       debugPrint('[Player] Fehler beim Fortsetzen: $e');
     }
@@ -308,17 +360,15 @@ class AudioPlayerService extends ChangeNotifier {
     if (_disposed) return;
     try {
       await _voicePlayer.stop();
-      // Stop all pooled players (active or not) to ensure silence.
+      // Stop all pooled players to ensure silence.
       for (final player in _bgPlayers.values) {
         await player.stop();
       }
-      debugPrint(
-        '[Player] Gestoppt (Stimme + ${_bgPlayers.length} Hintergrund).',
-      );
+      debugPrint('[Player] Gestoppt (${_bgPlayers.length} Hintergrund).');
     } catch (e) {
       debugPrint('[Player] Fehler beim Stoppen: $e');
     }
-    // Keep _activeIds and volumes intact for the next play() call.
+    // Keep _activeIds and _bgStates intact for resume after stop.
     _status = PlayerStatus.stopped;
     if (!_disposed) notifyListeners();
   }

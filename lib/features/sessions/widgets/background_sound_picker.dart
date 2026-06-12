@@ -7,7 +7,7 @@ import '../data/background_sound_repository.dart';
 
 /// Multi-select background sound picker.
 /// Reads state from [AudioPlayerService] directly – no props needed.
-/// Silence chip acts as "stop all" button.
+/// Chips update instantly on tap; audio loads asynchronously in the background.
 class BackgroundSoundPicker extends StatelessWidget {
   const BackgroundSoundPicker({super.key});
 
@@ -65,9 +65,12 @@ class BackgroundSoundPicker extends StatelessWidget {
                   final isActive = sound.isSilence
                       ? !svc.hasActiveBackground
                       : svc.isBackgroundActive(sound.id);
+                  final isLoading = !sound.isSilence &&
+                      svc.isBackgroundLoading(sound.id);
                   return _SoundChip(
                     sound: sound,
                     isSelected: isActive,
+                    isLoading: isLoading,
                     onTap: () => svc.toggleBackgroundSound(sound),
                   );
                 },
@@ -83,11 +86,13 @@ class BackgroundSoundPicker extends StatelessWidget {
 class _SoundChip extends StatelessWidget {
   final BackgroundSound sound;
   final bool isSelected;
+  final bool isLoading;
   final VoidCallback onTap;
 
   const _SoundChip({
     required this.sound,
     required this.isSelected,
+    required this.isLoading,
     required this.onTap,
   });
 
@@ -96,7 +101,7 @@ class _SoundChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 150),
         width: 80,
         decoration: BoxDecoration(
           color: isSelected
@@ -115,19 +120,37 @@ class _SoundChip extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                sound.icon,
-                color:
-                    isSelected ? AppTheme.primaryLight : AppTheme.onSurface,
-                size: 26,
+              // Icon or loading spinner
+              SizedBox(
+                width: 26,
+                height: 26,
+                child: isLoading
+                    ? Center(
+                        child: SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppTheme.primaryLight,
+                          ),
+                        ),
+                      )
+                    : Icon(
+                        sound.icon,
+                        color: isSelected
+                            ? AppTheme.primaryLight
+                            : AppTheme.onSurface,
+                        size: 26,
+                      ),
               ),
               const SizedBox(height: 6),
               Text(
                 sound.title,
                 style: TextStyle(
                   fontSize: 10,
-                  color:
-                      isSelected ? AppTheme.primaryLight : AppTheme.onSurface,
+                  color: isSelected
+                      ? AppTheme.primaryLight
+                      : AppTheme.onSurface,
                   fontWeight:
                       isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
